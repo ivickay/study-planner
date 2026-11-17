@@ -472,6 +472,11 @@
   }
 
   var fileHandle = null;
+  var toastT;
+  function toast(msg) {
+    var t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove('show'); }, 3000);
+  }
   function flash(btn) { btn.classList.add('ok'); setTimeout(function () { btn.classList.remove('ok'); }, 1200); }
   function download(data) {
     var a = document.createElement('a');
@@ -480,8 +485,9 @@
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
   }
-  async function saveFile() {
+  async function saveFile(saveAs) {
     var data = JSON.stringify(app, null, 1);
+    if (saveAs) fileHandle = null;
     if (window.showSaveFilePicker) {
       try {
         if (!fileHandle) fileHandle = await window.showSaveFilePicker({
@@ -489,16 +495,16 @@
           types: [{ description: 'Study planner', accept: { 'application/json': ['.json'] } }]
         });
         var w = await fileHandle.createWritable(); await w.write(data); await w.close();
-        flash($('bSave'));
-      } catch (e) { if (e.name !== 'AbortError') { fileHandle = null; download(data); } }
-    } else { download(data); flash($('bSave')); }
+        flash($('bSave')); toast('Saved to ' + fileHandle.name);
+      } catch (e) { if (e.name !== 'AbortError') { fileHandle = null; download(data); flash($('bSave')); toast('Saved to your Downloads folder as study-planner.json'); } }
+    } else { download(data); flash($('bSave')); toast('Saved to your Downloads folder as study-planner.json'); }
   }
   async function openFile() {
     if (window.showOpenFilePicker) {
       try {
         var hs = await window.showOpenFilePicker({ types: [{ description: 'Study planner', accept: { 'application/json': ['.json'] } }] });
         var file = await hs[0].getFile(), text = await file.text();
-        if (importText(text, true)) fileHandle = hs[0];
+        if (importText(text, true)) { fileHandle = hs[0]; toast('Opened ' + file.name); }
       } catch (e) {}
     } else $('fileIn').click();
   }
@@ -510,7 +516,7 @@
 
   $('bUndo').onclick = undo;
   $('bOpen').onclick = openFile;
-  $('bSave').onclick = saveFile;
+  $('bSave').onclick = function (e) { saveFile(e.shiftKey); };
   $('bPrint').onclick = function () { closePop(); window.print(); };
   $('bSettings').onclick = openSettings;
 
@@ -519,7 +525,7 @@
     var mod = e.ctrlKey || e.metaKey;
     if (e.key === 'Escape') { closePop(); if (!$('modal').hidden) closeSettings(); }
     if (mod && !e.shiftKey && e.key.toLowerCase() === 'z' && !editing) { e.preventDefault(); undo(); }
-    if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); saveFile(); }
+    if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); saveFile(e.shiftKey); }
   });
 
   // ---------- fit page to window ----------

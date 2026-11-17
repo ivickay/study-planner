@@ -65,6 +65,7 @@
   app.sheets.forEach(fixSheet);
   if (!(app.active >= 0 && app.active < app.sheets.length)) app.active = 0;
   app.nowColor = app.nowColor || '#F2A93B';
+  app.sessions = app.sessions || [];
   function applyNowColor() { document.documentElement.style.setProperty('--now', app.nowColor); }
 
   var undoStack = [];
@@ -99,7 +100,9 @@
   var gridEl = $('grid'), legEl = $('legend'), pop = $('pop');
 
   function render() {
-    applyNowColor(); renderGrid(); renderLegend(); renderTabs(); fit();
+    applyNowColor();
+    if (typeof view !== 'undefined' && view === 'study') { if (window.Planner && window.Planner.onStudyRender) window.Planner.onStudyRender(); return; }
+    renderGrid(); renderLegend(); renderTabs(); fit();
   }
 
   function renderGrid() {
@@ -461,7 +464,7 @@
     try { o = JSON.parse(text); } catch (e) { return false; }
     if (o && Array.isArray(o.sheets) && o.sheets.length) {
       snap();
-      if (replaceAll) { app = { v: 1, sheets: o.sheets.map(fixSheet), active: Math.min(o.active || 0, o.sheets.length - 1), nowColor: o.nowColor || app.nowColor }; }
+      if (replaceAll) { app = { v: 1, sheets: o.sheets.map(fixSheet), active: Math.min(o.active || 0, o.sheets.length - 1), nowColor: o.nowColor || app.nowColor, sessions: o.sessions || app.sessions || [] }; }
       else { o.sheets.forEach(function (s) { s.id = uid(); app.sheets.push(fixSheet(s)); }); app.active = app.sheets.length - 1; }
     } else if (isOld(o)) {
       snap(); app.sheets.push(fromOld(o)); app.active = app.sheets.length - 1;
@@ -550,6 +553,26 @@
     });
     navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function (r) { r.update(); }).catch(function () {});
   }
+
+  // ---------- study view ----------
+  var view = 'table';
+  function setView(v) {
+    view = v; closePop();
+    var study = v === 'study';
+    $('study').hidden = !study; $('stage').hidden = study; $('tabs').hidden = study;
+    $('bPrint').hidden = study; $('bSettings').hidden = study;
+    $('bStudy').title = study ? 'Timetable' : 'Study';
+    $('bStudy').setAttribute('aria-label', study ? 'Timetable' : 'Study');
+    $('bStudy').classList.toggle('on', study);
+    render();
+  }
+  $('bStudy').onclick = function () { setView(view === 'study' ? 'table' : 'study'); };
+
+  window.Planner = {
+    FAM: FAM, iso: iso, addDays: addDays, uid: uid, parseISO: parseISO,
+    timesOf: timesOf, daysOf: daysOf, effective: effective,
+    app: function () { return app; }, snap: snap, persist: persist, onStudyRender: null
+  };
 
   render(); updateUndo();
 })();

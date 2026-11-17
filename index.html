@@ -22,10 +22,14 @@
     </div>
   </div>
 </main>
+<section id="study" hidden></section>
 
 <nav id="bar">
   <div id="tabs"></div>
   <div id="tools">
+    <button id="bStudy" class="tool wide" title="Study" aria-label="Study">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9 2h6"/></svg><span id="tRun"></span>
+    </button>
     <button id="bUndo" class="tool" title="Undo" aria-label="Undo">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
     </button>
@@ -83,5 +87,6 @@
 
 <input id="fileIn" type="file" accept=".json,application/json" hidden>
 <script src="app.js"></script>
+<script src="study.js"></script>
 </body>
 </html>

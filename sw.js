@@ -1,6 +1,6 @@
 // Bump VERSION whenever you upload changed files, so phones pick up the update.
-var VERSION = 'planner-v5';
-var SHELL = ['./', 'index.html', 'style.css', 'app.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
+var VERSION = 'planner-v6';
+var SHELL = ['./', 'index.html', 'style.css', 'app.js', 'study.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(VERSION).then(function (c) { return c.addAll(SHELL); }).then(function () { return self.skipWaiting(); }));

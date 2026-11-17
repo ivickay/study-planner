@@ -106,7 +106,7 @@
     var s = S(), days = daysOf(s), times = timesOf(s);
     var first = days[0];
     var gaps = days.filter(function (d) { return d.getDay() === 1 && +d !== +first; }).length;
-    var colW = Math.max(12, Math.min(40, Math.floor((1059 - 46 - gaps * 8) / Math.max(days.length, 1))));
+    var colW = Math.max(12, Math.floor((1059 - 46 - gaps * 8) / Math.max(days.length, 1)));
     var hours = times.filter(function (t, i) { return i > 0 && t.slice(3) === '00'; }).length;
     var legendH = 60, avail = PAGE_H - 48 - 84 - 12 - legendH;
     var step = Math.max(8, Math.floor((avail - hours * 2) / Math.max(times.length, 1)));

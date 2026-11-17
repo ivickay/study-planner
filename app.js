@@ -64,6 +64,8 @@
   if (!app || !Array.isArray(app.sheets) || !app.sheets.length) app = { v: 1, sheets: [newSheet('Sheet 1')], active: 0 };
   app.sheets.forEach(fixSheet);
   if (!(app.active >= 0 && app.active < app.sheets.length)) app.active = 0;
+  app.nowColor = app.nowColor || '#F2A93B';
+  function applyNowColor() { document.documentElement.style.setProperty('--now', app.nowColor); }
 
   var undoStack = [];
   function persist() { try { localStorage.setItem(KEY, JSON.stringify(app)); } catch (e) {} }
@@ -97,7 +99,7 @@
   var gridEl = $('grid'), legEl = $('legend'), pop = $('pop');
 
   function render() {
-    renderGrid(); renderLegend(); renderTabs(); fit();
+    applyNowColor(); renderGrid(); renderLegend(); renderTabs(); fit();
   }
 
   function renderGrid() {
@@ -107,7 +109,7 @@
     var colW = Math.max(12, Math.min(40, Math.floor((1059 - 46 - gaps * 8) / Math.max(days.length, 1))));
     var hours = times.filter(function (t, i) { return i > 0 && t.slice(3) === '00'; }).length;
     var legendH = 60, avail = PAGE_H - 48 - 84 - 12 - legendH;
-    var step = Math.max(8, Math.min(22, Math.floor((avail - hours * 2) / Math.max(times.length, 1))));
+    var step = Math.max(8, Math.floor((avail - hours * 2) / Math.max(times.length, 1)));
     var tw = colW - 2, th = step - 2, fs = colW < 24 ? 10 : 12;
 
     function ml(d) { return (d.getDay() === 1 && +d !== +first) ? 10 : 2; }
@@ -427,6 +429,7 @@
     var s = S();
     $('fName').value = s.name; $('fStart').value = s.start; $('fEnd').value = s.end;
     $('fDayStart').value = s.dayStart; $('fDayEnd').value = s.dayEnd; $('fSlot').value = String(s.slot);
+    $('fNow').value = app.nowColor;
     $('fErr').textContent = ''; $('fImport').value = '';
     $('modal').hidden = false; $('fName').focus();
   }
@@ -443,6 +446,7 @@
     if (err) { $('fErr').textContent = err; return; }
     var s = S(); snap();
     s.name = name; s.start = a; s.end = b; s.dayStart = ds; s.dayEnd = de; s.slot = slot;
+    app.nowColor = $('fNow').value || app.nowColor;
     persist(); closeSettings(); render();
   };
   $('fImportBtn').onclick = function () {
@@ -457,7 +461,7 @@
     try { o = JSON.parse(text); } catch (e) { return false; }
     if (o && Array.isArray(o.sheets) && o.sheets.length) {
       snap();
-      if (replaceAll) { app = { v: 1, sheets: o.sheets.map(fixSheet), active: Math.min(o.active || 0, o.sheets.length - 1) }; }
+      if (replaceAll) { app = { v: 1, sheets: o.sheets.map(fixSheet), active: Math.min(o.active || 0, o.sheets.length - 1), nowColor: o.nowColor || app.nowColor }; }
       else { o.sheets.forEach(function (s) { s.id = uid(); app.sheets.push(fixSheet(s)); }); app.active = app.sheets.length - 1; }
     } else if (isOld(o)) {
       snap(); app.sheets.push(fromOld(o)); app.active = app.sheets.length - 1;

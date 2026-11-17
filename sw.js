@@ -1,5 +1,5 @@
 // Bump VERSION whenever you upload changed files, so phones pick up the update.
-var VERSION = 'planner-v3';
+var VERSION = 'planner-v4';
 var SHELL = ['./', 'index.html', 'style.css', 'app.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', function (e) {
@@ -14,7 +14,8 @@ self.addEventListener('fetch', function (e) {
   if (e.request.method !== 'GET') return;
   // network first so updates show when online; cache when offline
   e.respondWith(
-    fetch(e.request).then(function (res) {
+    // same-site files: always check GitHub for a newer copy instead of using the browser's 10-minute cache
+    (new URL(e.request.url).origin === self.location.origin ? fetch(e.request.url, { cache: 'no-cache' }) : fetch(e.request)).then(function (res) {
       if (res && (res.ok || res.type === 'opaque')) {
         var copy = res.clone();
         caches.open(VERSION).then(function (c) { c.put(e.request, copy); });
